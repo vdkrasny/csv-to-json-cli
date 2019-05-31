@@ -1,0 +1,32 @@
+{
+  "name": "csv-to-json",
+  "version": "0.0.1",
+  "description": "A command line tool which allows to convert CSV files to JSON.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vdkrasny/csv-to-json.git"
+  },
+  "keywords": [
+    "csv",
+    "json",
+    "parser",
+    "converter",
+    "nodejs"
+  ],
+  "author": "Vlad Krasny",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vdkrasny/csv-to-json/issues"
+  },
+  "homepage": "https://github.com/vdkrasny/csv-to-json#readme",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.3"
+  }
+}
