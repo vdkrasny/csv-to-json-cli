@@ -1,4 +1,5 @@
 const convertCsvToJson = require('./src/convertCsvToJson');
+const googleDriveUploadFile = require('./src/google-drive/uploadFile');
 
 const CLI_NAME = 'csv-to-json-cli';
 const HELP_FLAG = '--help';
@@ -41,6 +42,7 @@ const [
         }
 
         await convertCsvToJson(sourceFilePath, resultFilePath, separator);
+        await googleDriveUploadFile(resultFilePath);
     } catch (err) {
         console.error(`${err.message}`);
     }
