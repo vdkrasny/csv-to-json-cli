@@ -1,3 +1,5 @@
+const convertCsvToJson = require('./src/convertCsvToJson');
+
 const CLI_NAME = 'csv-to-json-cli';
 const HELP_FLAG = '--help';
 const SOURCE_FILE_FLAG = '--sourceFile';
@@ -37,6 +39,8 @@ const [
         if (separatorArg !== undefined && separatorArg !== SEPARATOR_FLAG) {
             throw new Error(`Error: Wrong command line argument ${separatorArg} expected ${SEPARATOR_FLAG}`);
         }
+
+        await convertCsvToJson(sourceFilePath, resultFilePath, separator);
     } catch (err) {
         console.error(`${err.message}`);
     }
