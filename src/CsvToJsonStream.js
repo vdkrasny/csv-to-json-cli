@@ -1,47 +1,48 @@
 const { Transform } = require('stream');
 
-const CsvToJson = require('./CsvToJson');
+const CsvConverter = require('./CsvToJson');
 
-module.exports = class extends Transform {
+module.exports = class CsvToJsonStream extends Transform {
     constructor(separator) {
         super();
 
         this.isHeader = true;
-        this.isFirstDataRow = true;
-        this.rawDataHub = '';
+        this.isFirstCsvRow = true;
+        this.csvStringHub = '';
 
-        this.csvToJson = new CsvToJson(separator);
+        this.csvConverter = new CsvConverter(separator);
     }
 
     _transform(chunk, encoding, callback) {
-        const nextRowSeparator = '\r';
+        const csvRowSeparator = '\r';
 
-        const rawData = this.rawDataHub + chunk.toString();
-        const lastRowIndex = rawData.lastIndexOf(nextRowSeparator);
+        const csvString = this.csvStringHub + chunk;
+        const csvLastCorrectRowIndex = csvString.lastIndexOf(csvRowSeparator);
 
-        let data;
+        let splitCsv;
 
-        if (rawData.endsWith(nextRowSeparator)) {
-            this.rawDataHub = '';
-            data = rawData.split(nextRowSeparator);
+        if (csvString.endsWith(csvRowSeparator)) {
+            this.csvStringHub = '';
+            splitCsv = csvString.split(csvRowSeparator);
         } else {
-            this.rawDataHub = rawData.substring(lastRowIndex + 1);
-            data = rawData.substring(0, lastRowIndex)
-                .split(nextRowSeparator);
+            this.csvStringHub = csvString.substring(csvLastCorrectRowIndex + 1);
+            splitCsv = csvString
+                .substring(0, csvLastCorrectRowIndex)
+                .split(csvRowSeparator);
         }
 
-        data.forEach((row) => {
+        splitCsv.forEach((csvRow) => {
             if (this.isHeader) {
                 this.isHeader = false;
 
-                this.csvToJson.setKeys(row);
+                this.csvConverter.setJsonKeys(csvRow);
                 this.push('[');
-            } else if (this.isFirstDataRow) {
-                this.isFirstDataRow = false;
+            } else if (this.isFirstCsvRow) {
+                this.isFirstCsvRow = false;
 
-                this.push(JSON.stringify(this.csvToJson.getJson(row)));
+                this.push(JSON.stringify(this.csvConverter.getJsonFrom(csvRow)));
             } else {
-                this.push(`, ${JSON.stringify(this.csvToJson.getJson(row))}`);
+                this.push(`, ${JSON.stringify(this.csvConverter.getJsonFrom(csvRow))}`);
             }
         });
 
@@ -49,6 +50,10 @@ module.exports = class extends Transform {
     }
 
     _flush(callback) {
+        if (this.csvStringHub) {
+            this.push(`, ${JSON.stringify(this.csvConverter.getJsonFrom(this.csvStringHub))}`);
+        }
+
         this.push(']');
 
         return callback();

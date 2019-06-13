@@ -1,47 +1,46 @@
-module.exports = class {
+module.exports = class CsvConverter {
     constructor(separator = null) {
         this.separator = separator;
 
-        this._keys = [];
+        this._jsonKeys = [];
+        this._possibleSeparators = [',', ';', '|', '\t', ' '];
     }
 
-    setKeys(str) {
+    setJsonKeys(unsplitStr) {
         if (!this.separator) {
-            this.separator = this._detectSeparator(str);
+            this.separator = this._detectSeparator(unsplitStr);
         }
 
-        this._keys = str.split(this.separator);
+        this._jsonKeys = unsplitStr.split(this.separator);
     }
 
-    getJson(str) {
-        const values = str.split(this.separator);
-        const object = {};
+    getJsonFrom(unsplitStr) {
+        const parsedStr = unsplitStr.split(this.separator);
+        const resultJson = {};
 
-        this._keys.forEach((key, idx) => { object[key] = values[idx]; });
+        this._jsonKeys.forEach((key, idx) => { resultJson[key] = parsedStr[idx]; });
 
-        return object;
+        return resultJson;
     }
 
-    _detectSeparator(str) {
-        const separators = [',', ';', '|', '\t', ' '];
-
+    _detectSeparator(unsplitStr) {
         const detectedSeparator = {
             separator: null,
             matchCount: 0
         };
 
-        separators.forEach((separator) => {
-            let previous = null;
-            let current = null;
-            let next = null;
+        this._possibleSeparators.forEach((separator) => {
+            let previousStrSymbol = null;
+            let currentStrSymbol = null;
+            let nextStrSymbol = null;
             let matchCount = 0;
 
-            for (let i = 0; i < str.length; i += 1) {
-                previous = str[i - 1];
-                current = str[i];
-                next = str[i + 1];
+            for (let i = 0; i < unsplitStr.length; i += 1) {
+                previousStrSymbol = unsplitStr[i - 1];
+                currentStrSymbol = unsplitStr[i];
+                nextStrSymbol = unsplitStr[i + 1];
 
-                if (current === separator && previous !== separator && next !== separator) {
+                if (currentStrSymbol === separator && previousStrSymbol !== separator && nextStrSymbol !== separator) {
                     matchCount += 1;
                 }
             }
