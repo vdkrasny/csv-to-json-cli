@@ -4,26 +4,30 @@ const path = require('path');
 
 const { google } = require('googleapis');
 
-// If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const TOKEN_PATH = path.join(__dirname, 'token.json');
+const { googleDrive: { scopes, redirectUri } } = require('../../constants');
 
-module.exports = class {
-    constructor(clientId, clientSecret, mimeType = 'text/plain', folderId = '') {
+module.exports = class GoogleDrive {
+    constructor(clientId, clientSecret, folderId = null, mimeType = 'text/plain') {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
 
-        this.mimeType = mimeType;
         this.folderId = folderId;
+        this.mimeType = mimeType;
+
+        this._scopes = scopes;
+        this._redirectUri = redirectUri;
+        this._tokenPath = path.join(__dirname, 'token.json');
     }
 
     authorize() {
-        const oAuth2 = new google.auth.OAuth2(this.clientId, this.clientSecret);
+        const oAuth2 = new google.auth.OAuth2(this.clientId, this.clientSecret, this._redirectUri);
 
         return new Promise((resolve, reject) => {
-            fs.readFile(TOKEN_PATH, (err, token) => {
+            fs.readFile(this._tokenPath, async (err, token) => {
                 if (err) {
-                    return reject(new Error(`Error reading access token. ${err}`));
+                    await this._createAccessToken(oAuth2);
+
+                    return reject(new Error('Please, try again.'));
                 }
 
                 oAuth2.setCredentials(JSON.parse(token));
@@ -36,14 +40,17 @@ module.exports = class {
     uploadFile(auth, filePath) {
         return new Promise((resolve, reject) => {
             const name = path.parse(filePath).base;
-            const resource = {
-                name,
-                parents: [this.folderId]
-            };
+            const resource = { name };
             const media = {
                 mimeType: this.mimeType,
                 body: fs.createReadStream(filePath)
             };
+
+            if (this.folderId) {
+                resource.parents = [this.folderId];
+            }
+
+            console.log(resource);
 
             google.drive('v3').files.create({ auth, resource, media }, (err) => {
                 if (err) {
@@ -58,31 +65,31 @@ module.exports = class {
     _createAccessToken(oAuth2Client, callback) {
         const authUrl = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
-            scope: SCOPES
+            scope: this._scopes
         });
 
         console.log('Authorize this app by visiting this url:', authUrl);
 
         return new Promise((resolve, reject) => {
-            const rl = readline.createInterface({
+            const readlineInterface = readline.createInterface({
                 input: process.stdin,
                 output: process.stdout
             });
 
-            rl.question('Enter the code from that page here: ', (code) => {
-                rl.close();
+            readlineInterface.question('Enter the code from that page here: ', (code) => {
+                readlineInterface.close();
                 oAuth2Client.getToken(code, (err, token) => {
                     if (err) {
                         return reject(new Error(`Error retrieving access token. ${err}`));
                     }
 
                     oAuth2Client.setCredentials(token);
-                    fs.writeFile(TOKEN_PATH, JSON.stringify(token), (e) => {
+                    fs.writeFile(this._tokenPath, JSON.stringify(token), (e) => {
                         if (e) {
                             return reject(e);
                         }
 
-                        return console.log('Token stored to', TOKEN_PATH);
+                        return console.log('Token stored to', this._tokenPath);
                     });
 
                     return resolve(oAuth2Client);
