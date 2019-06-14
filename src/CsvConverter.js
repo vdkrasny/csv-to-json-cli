@@ -2,23 +2,23 @@ module.exports = class CsvConverter {
     constructor(separator = null) {
         this.separator = separator;
 
-        this._jsonKeys = [];
+        this._csvHeaders = [];
         this._possibleSeparators = [',', ';', '|', '\t', ' '];
     }
 
-    setJsonKeys(unsplitStr) {
+    setHeaders(unsplitCsv) {
         if (!this.separator) {
-            this.separator = this._detectSeparator(unsplitStr);
+            this.separator = this._detectSeparator(unsplitCsv);
         }
 
-        this._jsonKeys = unsplitStr.split(this.separator);
+        this._csvHeaders = unsplitCsv.split(this.separator);
     }
 
-    getJsonFrom(unsplitStr) {
-        const parsedStr = unsplitStr.split(this.separator);
+    getJson(unsplitCsv) {
+        const parsedCsv = unsplitCsv.split(this.separator);
         const resultJson = {};
 
-        this._jsonKeys.forEach((key, idx) => { resultJson[key] = parsedStr[idx]; });
+        this._csvHeaders.forEach((key, index) => { resultJson[key] = parsedCsv[index]; });
 
         return resultJson;
     }
@@ -32,15 +32,13 @@ module.exports = class CsvConverter {
         this._possibleSeparators.forEach((separator) => {
             let previousStrSymbol = null;
             let currentStrSymbol = null;
-            let nextStrSymbol = null;
             let matchCount = 0;
 
             for (let i = 0; i < unsplitStr.length; i += 1) {
                 previousStrSymbol = unsplitStr[i - 1];
                 currentStrSymbol = unsplitStr[i];
-                nextStrSymbol = unsplitStr[i + 1];
 
-                if (currentStrSymbol === separator && previousStrSymbol !== separator && nextStrSymbol !== separator) {
+                if (currentStrSymbol === separator && previousStrSymbol !== separator) {
                     matchCount += 1;
                 }
             }

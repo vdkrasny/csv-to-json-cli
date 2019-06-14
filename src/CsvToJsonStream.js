@@ -1,6 +1,6 @@
 const { Transform } = require('stream');
 
-const CsvConverter = require('./CsvToJson');
+const CsvConverter = require('./CsvConverter');
 
 module.exports = class CsvToJsonStream extends Transform {
     constructor(separator) {
