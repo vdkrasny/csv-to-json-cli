@@ -50,8 +50,6 @@ module.exports = class GoogleDrive {
                 resource.parents = [this.folderId];
             }
 
-            console.log(resource);
-
             google.drive('v3').files.create({ auth, resource, media }, (err) => {
                 if (err) {
                     return reject(err);
@@ -84,15 +82,16 @@ module.exports = class GoogleDrive {
                     }
 
                     oAuth2Client.setCredentials(token);
-                    fs.writeFile(this._tokenPath, JSON.stringify(token), (e) => {
+
+                    return fs.writeFile(this._tokenPath, JSON.stringify(token), (e) => {
                         if (e) {
                             return reject(e);
                         }
 
-                        return console.log('Token stored to', this._tokenPath);
-                    });
+                        console.log('Token stored to', this._tokenPath);
 
-                    return resolve(oAuth2Client);
+                        return resolve(oAuth2Client);
+                    });
                 });
             });
         });

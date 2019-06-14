@@ -1,4 +1,4 @@
-module.exports = function (argv) {
+module.exports = (argv) => {
     const CLI_NAME = 'csv-to-json-cli';
     const HELP_FLAG = '--help';
     const SOURCE_FILE_FLAG = '--sourceFile';
